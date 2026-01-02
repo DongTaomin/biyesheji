@@ -1,4 +1,4 @@
-# **App Name**: 狗狗码字
+# **App Name**: 长大写作平台
 
 ## Core Features:
 

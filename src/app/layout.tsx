@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Providers } from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: '狗狗码字工具',
+  title: '长大写作平台',
   description: '一个帮助作者进行创作的AI工具',
 };
 

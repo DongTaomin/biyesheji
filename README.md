@@ -1,4 +1,4 @@
-# 🚀 Dog写作引擎 - 新一代AI小说创作平台
+# 🚀 长大写作平台 - 新一代AI小说创作平台
 
 <div align="center">
 
@@ -24,7 +24,7 @@
 
 ## 📖 项目简介
 
-Dog写作引擎是一款专为网文作者打造的**开源全栈创作平台**，基于 Next.js 15 + TypeScript 构建。它不仅仅是一个写作工具，更是一个集成了AI辅助创作、在线书城、智能分析、图片生成等多功能的**一站式创作生态系统**。
+长大写作平台是一款专为网文作者打造的**开源全栈创作平台**，基于 Next.js 15 + TypeScript 构建。它不仅仅是一个写作工具，更是一个集成了AI辅助创作、在线书城、智能分析、图片生成等多功能的**一站式创作生态系统**。
 
 ### 🎯 核心亮点
 
@@ -338,8 +338,8 @@ Next.js 15 (App Router + Pages Router混合)
 #### 1️⃣ 克隆项目
 
 ```bash
-git clone https://github.com/your-username/dog-writing-engine.git
-cd dog-writing-engine
+git clone https://github.com/your-username/changda-writing-platform.git
+cd changda-writing-platform
 ```
 
 #### 2️⃣ 安装依赖
@@ -599,7 +599,7 @@ interface WorldBook {
 ## 🏗 项目结构
 
 ```
-dog-writing-engine/
+changda-writing-platform/
 ├── src/
 │   ├── app/                          # Next.js App Router
 │   │   ├── api/
@@ -1541,12 +1541,12 @@ function extractNavigation(html: string): Navigation {
 
 ```bash
 # 构建镜像
-docker build -t dog-writing-engine .
+docker build -t changda-writing-platform .
 
 # 运行容器
 docker run -p 9002:9002 \
   -e GEMINI_API_KEY=your_key \
-  dog-writing-engine
+  changda-writing-platform
 ```
 
 ### 传统服务器部署
@@ -1766,7 +1766,7 @@ docs: 更新部署指南
 ```
 MIT License
 
-Copyright (c) 2025 Dog写作引擎
+Copyright (c) 2025 长大写作平台
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1791,7 +1791,7 @@ SOFTWARE.
 
 ## 📞 联系方式
 
-- **GitHub Issues**: [提交Issue](https://github.com/your-username/dog-writing-engine/issues)
+- **GitHub Issues**: [提交Issue](https://github.com/your-username/changda-writing-platform/issues)
 - **qq**: [参与讨论](点击链接加入群聊【开源狗狗码字项目】：https://qun.qq.com/universal-share/share?ac=1&authKey=8UGSD089UNOpMasstObtoNIehS8FQ10xBgpCJQ7tDcS8OU0YxMfvZi3aajlPS%2BpA&busi_data=eyJncm91cENvZGUiOiIxMDMzNzI1NzcyIiwidG9rZW4iOiJaVFhYS0JJZGJJbS9JQ1d5alNQZEVSS1oyS05pYXJ4Ky9La1lILzkyZHduN1hhUzBISnAraUNxLzRPTVY0eHQ3IiwidWluIjoiMzUyNzIyODgxOSJ9&data=d1f6kgQIHnEM8aPynSOSyz_Yptt661InyHuv-6L8MsgJnntWQ7bsWhwdMIp4krBMfc8s7CJdVVGYy2TtoQvyVQ&svctype=4&tempid=h5_group_info)
 - **Email**: 3527228819@qq.com
 
@@ -1799,7 +1799,7 @@ SOFTWARE.
 
 ## ⭐ Star历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=your-username/dog-writing-engine&type=Date)](https://star-history.com/#your-username/dog-writing-engine&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=your-username/changda-writing-platform&type=Date)](https://star-history.com/#your-username/changda-writing-platform&Date)
 
 ---
 
@@ -1807,8 +1807,8 @@ SOFTWARE.
 
 **如果这个项目对你有帮助，请给一个⭐Star支持一下！**
 
-Made with ❤️ by Dog写作引擎团队
+Made with ❤️ by 长大写作平台团队
 
-[⬆ 回到顶部](#-dog写作引擎---新一代ai小说创作平台)
+[⬆ 回到顶部](#-长大写作平台---新一代ai小说创作平台)
 
 </div>
