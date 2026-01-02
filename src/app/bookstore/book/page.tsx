@@ -164,7 +164,7 @@ function BookDetail() {
                                 {isImporting ? "正在加入书架..." : "加入我的书架"}
                             </Button>
                             {book.chapters.length > 0 && (
-                                <Link href={`/bookstore/read?url=${encodeURIComponent(book.chapters[0].url)}&sourceId=${sourceId}`} passHref>
+                                <Link href={`/bookstore/read?url=${encodeURIComponent(book.chapters[0].url)}&sourceId=${sourceId}&bookUrl=${encodeURIComponent(url)}`} passHref>
                                     <Button variant="outline" className="w-full">
                                         开始阅读
                                         <ArrowRight className="ml-2"/>
@@ -214,7 +214,7 @@ function BookDetail() {
                                   return (
                                     <div className="space-y-1 max-h-96 overflow-y-auto">
                                       {safeChapters.map((chapter, index) => (
-                                        <Link key={`${index}-${chapter.url}`} href={`/bookstore/read?url=${encodeURIComponent(chapter.url)}&sourceId=${sourceId}`} passHref>
+                                        <Link key={`${index}-${chapter.url}`} href={`/bookstore/read?url=${encodeURIComponent(chapter.url)}&sourceId=${sourceId}&bookUrl=${encodeURIComponent(url)}`} passHref>
                                             <div className="group hover:bg-accent/50 p-2 rounded-md transition-colors">
                                                 <div className="text-sm font-medium group-hover:text-primary transition-colors">
                                                     {chapter.title}

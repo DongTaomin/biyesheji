@@ -419,11 +419,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         }
 
+        // 处理上一页链接
+        let prevUrl: string | undefined = undefined;
+        if (contentRule.prevContentUrl) {
+            if (contentRule.prevContentUrl.startsWith('<js>')) {
+                let evalBaseUrl3 = chapterUrl;
+                try {
+                    const u3 = new URL(chapterUrl);
+                    const qs3 = u3.searchParams.toString();
+                    if (qs3) evalBaseUrl3 = Buffer.from(qs3, 'utf-8').toString('base64');
+                } catch {}
+                prevUrl = await evaluateJs(contentRule.prevContentUrl, { source, result: html, baseUrl: evalBaseUrl3 });
+            } else {
+                prevUrl = await parseWithRules(html, contentRule.prevContentUrl, chapterUrl, source);
+            }
+        }
+
         const chapterContent: BookstoreChapterContent = {
             title: chapterTitle,
             content,
             nextChapterUrl: nextUrl,
-            prevChapterUrl: undefined, // Note: prevChapterUrl is not part of the spec, would require more logic
+            prevChapterUrl: prevUrl,
         };
         
         // console.log(`${logPrefix} Returning chapter: ${chapterContent.title}`);

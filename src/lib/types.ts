@@ -158,6 +158,7 @@ export interface BookSourceRule {
     content: string;
     chapterName?: string;
     nextContentUrl?: string;
+    prevContentUrl?: string;
     webJs?: string;
     sourceRegex?: string;
     replaceRegex?: string;
