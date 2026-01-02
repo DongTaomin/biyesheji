@@ -7,24 +7,32 @@ import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, ArrowRight, List } from 'lucide-react';
+import { ArrowLeft, ArrowRight, List, Zap } from 'lucide-react';
 import type { BookstoreChapterContent, BookstoreChapter } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ForesightManager } from 'js.foresight';
 
 function ChapterReader() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const initialUrl = searchParams.get('url') || '';
-    const sourceId = searchParams.get('sourceId') || '';
-    const bookUrl = searchParams.get('bookUrl') || '';
+    const initialUrl = searchParams?.get('url') || '';
+    const sourceId = searchParams?.get('sourceId') || '';
+    const bookUrl = searchParams?.get('bookUrl') || '';
     
     const [currentUrl, setCurrentUrl] = useState(initialUrl);
     const [chapter, setChapter] = useState<BookstoreChapterContent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [bookChapters, setBookChapters] = useState<BookstoreChapter[]>([]);
+    const [isForesightEnabled, setIsForesightEnabled] = useState(false);
     
     const scrollRef = useRef<HTMLDivElement>(null);
+    const nextBtnRef = useRef<HTMLButtonElement>(null);
+    const prevBtnRef = useRef<HTMLButtonElement>(null);
+    const tocBtnRef = useRef<HTMLButtonElement>(null);
 
     // Fetch book chapters once to enable robust navigation
     useEffect(() => {
@@ -52,7 +60,7 @@ function ChapterReader() {
         setCurrentUrl(fetchUrl);
         
         // Update URL in browser
-        const newParams = new URLSearchParams(searchParams.toString());
+        const newParams = new URLSearchParams(searchParams?.toString());
         newParams.set('url', fetchUrl);
         router.replace(`/bookstore/read?${newParams.toString()}`, { scroll: false });
 
@@ -117,6 +125,75 @@ function ChapterReader() {
 
     const { prev, next } = getNavigationUrls();
 
+    // ForesightJS Integration
+    useEffect(() => {
+        const initDevTools = async () => {
+            const { ForesightDevtools } = await import('js.foresight-devtools');
+            const { ForesightManager } = await import('js.foresight');
+            
+            // 检查是否已经初始化过，避免 "CustomElementRegistry" 重复定义错误
+            const isInitialized = !!(ForesightDevtools as any)._instance;
+
+            if (!isForesightEnabled) {
+                if (isInitialized) {
+                    ForesightDevtools.instance.alterDevtoolsSettings({ showDebugger: false });
+                }
+                return;
+            }
+
+            // 禁用滚动预判翻页，仅保留鼠标轨迹预判
+            ForesightManager.initialize({
+                enableManagerLogging: true,
+                debug: true,
+                enableMousePrediction: true,
+                enableScrollPrediction: false // 关闭滚动预判
+            });
+
+            if (!isInitialized) {
+                // 仅在未初始化时调用 initialize，这会定义 Custom Elements
+                ForesightDevtools.initialize({
+                    showDebugger: true,
+                    isControlPanelDefaultMinimized: true,
+                    showNameTags: false
+                });
+            } else {
+                // 如果已初始化，只需确保显示即可
+                ForesightDevtools.instance.alterDevtoolsSettings({ showDebugger: true });
+            }
+        };
+
+        if (typeof window !== 'undefined') {
+            initDevTools();
+        }
+
+        if (!isForesightEnabled || isLoading) return;
+
+        const manager = ForesightManager.instance;
+        
+        const refs = [
+            { ref: nextBtnRef, action: () => next && fetchChapter(next), name: '下一章' },
+            { ref: prevBtnRef, action: () => prev && fetchChapter(prev), name: '上一章' },
+            { ref: tocBtnRef, action: () => router.back(), name: '目录' }
+        ];
+
+        refs.forEach(({ ref, action, name }) => {
+            if (ref.current) {
+                manager.register({
+                    element: ref.current,
+                    callback: action,
+                    name: name,
+                    hitSlop: 20 // 还原正常的命中范围，防止滚动误触
+                });
+            }
+        });
+
+        return () => {
+            refs.forEach(({ ref }) => {
+                if (ref.current) manager.unregister(ref.current);
+            });
+        };
+    }, [isForesightEnabled, next, prev, isLoading, router]);
+
     if (isLoading && !chapter) {
         return <LoadingState />;
     }
@@ -170,6 +247,7 @@ function ChapterReader() {
                         {/* Navigation Buttons inside ScrollArea at the bottom */}
                         <div className="grid grid-cols-3 gap-2 md:gap-4 items-center mt-12 md:mt-20 pt-8 border-t border-border/50">
                             <Button 
+                                ref={prevBtnRef}
                                 onClick={() => prev && fetchChapter(prev)}
                                 disabled={!prev || isLoading}
                                 variant="outline"
@@ -181,6 +259,7 @@ function ChapterReader() {
                             </Button>
                             
                             <Button 
+                                ref={tocBtnRef}
                                 onClick={() => router.back()}
                                 variant="ghost"
                                 className="h-12"
@@ -191,6 +270,7 @@ function ChapterReader() {
                             </Button>
                             
                             <Button 
+                                ref={nextBtnRef}
                                 onClick={() => next && fetchChapter(next)}
                                 disabled={!next || isLoading}
                                 variant="outline"
@@ -204,6 +284,29 @@ function ChapterReader() {
                     </div>
                 </ScrollArea>
             </main>
+
+            {/* Foresight Floating Toggle */}
+            <div className="fixed bottom-6 right-6 z-50">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div className="flex items-center space-x-2 bg-background/80 backdrop-blur-md p-3 rounded-full border border-border shadow-lg">
+                                <Label htmlFor="foresight-mode" className="cursor-pointer ml-1">
+                                    <Zap className={`h-4 w-4 ${isForesightEnabled ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground'}`} />
+                                </Label>
+                                <Switch 
+                                    id="foresight-mode" 
+                                    checked={isForesightEnabled}
+                                    onCheckedChange={setIsForesightEnabled}
+                                />
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">
+                            <p>{isForesightEnabled ? '智能预判：开启 (触底自动翻页/返回)' : '智能预判：关闭'}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            </div>
         </div>
     );
 }
