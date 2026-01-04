@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Bot, Send, Sparkles, Trash2, User } from 'lucide-react';
 import { useAI } from '@/hooks/useAI';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -31,6 +32,65 @@ export function ReadingAIAssistant({ chapterTitle, chapterContent }: ReadingAIAs
     const { generateContentStream, isGenerating } = useAI();
     const { toast } = useToast();
     const scrollRef = useRef<HTMLDivElement>(null);
+    const [position, setPosition] = useLocalStorage('ai-assistant-pos', { x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [hasDragged, setHasDragged] = useState(false);
+    const dragRef = useRef<{ x: number; y: number } | null>(null);
+    const dragStartMousePos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+    // 处理拖拽开始
+    const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+        dragStartMousePos.current = { x: clientX, y: clientY };
+        dragRef.current = {
+            x: clientX - position.x,
+            y: clientY - position.y
+        };
+        setIsDragging(true);
+        setHasDragged(false);
+    };
+
+    // 监听拖拽过程和结束
+    useEffect(() => {
+        const handleDragMove = (e: MouseEvent | TouchEvent) => {
+            if (!isDragging || !dragRef.current) return;
+
+            const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
+            const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
+
+            const newX = clientX - dragRef.current.x;
+            const newY = clientY - dragRef.current.y;
+
+            setPosition({ x: newX, y: newY });
+
+            const deltaX = clientX - dragStartMousePos.current.x;
+            const deltaY = clientY - dragStartMousePos.current.y;
+            if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                setHasDragged(true);
+            }
+        };
+
+        const handleDragEnd = () => {
+            setIsDragging(false);
+            dragRef.current = null;
+        };
+
+        if (isDragging) {
+            window.addEventListener('mousemove', handleDragMove);
+            window.addEventListener('mouseup', handleDragEnd);
+            window.addEventListener('touchmove', handleDragMove, { passive: false });
+            window.addEventListener('touchend', handleDragEnd);
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleDragMove);
+            window.removeEventListener('mouseup', handleDragEnd);
+            window.removeEventListener('touchmove', handleDragMove);
+            window.removeEventListener('touchend', handleDragEnd);
+        };
+    }, [isDragging, setPosition]);
 
     // 自动滚动到底部
     useEffect(() => {
@@ -129,7 +189,20 @@ ${chapterContent}
                 <Button 
                     variant="outline" 
                     size="icon" 
-                    className="fixed bottom-24 right-6 z-50 rounded-full h-12 w-12 shadow-lg bg-background/80 backdrop-blur-md border-primary/20 hover:border-primary/50 transition-all"
+                    className={`fixed bottom-24 right-6 z-50 rounded-full h-12 w-12 shadow-lg bg-background/80 backdrop-blur-md border-primary/20 hover:border-primary/50 transition-transform ${isDragging ? '' : 'transition-all'}`}
+                    style={{
+                        transform: `translate(${position.x}px, ${position.y}px)`,
+                        cursor: isDragging ? 'grabbing' : 'grab',
+                        touchAction: 'none'
+                    }}
+                    onMouseDown={handleDragStart}
+                    onTouchStart={handleDragStart}
+                    onClick={(e) => {
+                        if (hasDragged) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    }}
                 >
                     <Bot className="h-6 w-6 text-primary" />
                 </Button>
