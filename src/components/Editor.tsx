@@ -33,9 +33,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import InlineAIToolbar from './InlineAIToolbar';
 import InlineAIPanel, { type InlineAIPanelValues } from './InlineAIPanel';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import type { ThemePluginManifest } from '@/lib/theme-plugin';
-import { THEME_PLUGINS_KEY, THEME_SELECTED_ID_KEY, applyThemeTokensToElement, getTokensForScope } from '@/lib/theme-plugin';
-
 
 interface EditorProps {
   chapter: Chapter;
@@ -90,16 +87,6 @@ export default function Editor({
 
 
   const [contextChapterIds, setContextChapterIds] = useState<Set<string>>(new Set());
-
-  // ===== 编辑器主题（插件） =====
-  const [installedThemes] = useLocalStorage<ThemePluginManifest[]>(THEME_PLUGINS_KEY, []);
-  const [selectedThemeId] = useLocalStorage<string | null>(THEME_SELECTED_ID_KEY, null);
-  useEffect(() => {
-    const theme = installedThemes.find(t => t.id === selectedThemeId) || null;
-    const cleanupEditor = editorRootRef.current ? applyThemeTokensToElement(editorRootRef.current, getTokensForScope(theme, 'editor')) : () => {};
-    const cleanupAction = actionbarRef.current ? applyThemeTokensToElement(actionbarRef.current, getTokensForScope(theme, 'actionbar')) : () => {};
-    return () => { cleanupEditor(); cleanupAction(); };
-  }, [installedThemes, selectedThemeId]);
 
   // 剧情建议 Dialog 状态
   const [isPlotDialogOpen, setIsPlotDialogOpen] = useState(false);
@@ -732,15 +719,7 @@ ${fullChapterContext ? `\n=== 当前章节内容 ===\n${fullChapterContext}\n` :
   return (
     <div
       ref={editorRootRef as any}
-      data-theme-scope="editor"
       className="flex flex-col h-full bg-background relative"
-      style={{
-        background: 'var(--editor-bg)',
-        color: 'var(--editor-fg)',
-        fontFamily: 'var(--editor-font-family)',
-        fontSize: 'var(--editor-font-size)',
-        lineHeight: 'var(--editor-line-height)'
-      }}
     >
         <div className="px-2 py-2 sm:px-4 sm:py-3 border-b flex justify-between items-center gap-2">
             <h2 className="text-base sm:text-lg md:text-2xl font-bold font-headline truncate flex-1 min-w-0">{chapter.title}</h2>
@@ -791,12 +770,6 @@ ${fullChapterContext ? `\n=== 当前章节内容 ===\n${fullChapterContext}\n` :
                 className="w-full h-full text-sm sm:text-base resize-none border-0 focus:ring-0 focus-visible:ring-0 p-3 sm:p-4 md:p-6 bg-transparent"
                 style={{
                   minHeight: isMobile ? 'calc(100vh - 120px)' : 'calc(100vh - 160px)',
-                  background: 'var(--editor-bg)',
-                  color: 'var(--editor-fg)',
-                  fontFamily: 'var(--editor-font-family)',
-                  fontSize: 'var(--editor-font-size)',
-                  lineHeight: 'var(--editor-line-height)',
-                  caretColor: 'var(--editor-caret-color)'
                 }}
             />
             {/* 内联 AI 工具栏 */}
@@ -823,7 +796,7 @@ ${fullChapterContext ? `\n=== 当前章节内容 ===\n${fullChapterContext}\n` :
         
         {/* 底部浮出操作条（接近页面底部时显示） */}
         {showFab && !isMobile && (
-          <div ref={actionbarRef as any} data-theme-scope="actionbar" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-background/80 border rounded-full px-2 py-1 shadow-md">
+          <div ref={actionbarRef as any} className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-background/80 border rounded-full px-2 py-1 shadow-md">
             <Button size="sm" variant="ghost" className="h-8 px-3" onClick={() => setIsAiDialogOpen(true)}>
               <PenLine className="h-4 w-4 mr-1" /> 剧情续写
             </Button>

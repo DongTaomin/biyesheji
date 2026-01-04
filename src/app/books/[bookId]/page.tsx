@@ -15,9 +15,6 @@ import WorldBookManager from '@/components/WorldBookManager';
 import CharacterCardManager from '@/components/CharacterCardManager';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useLocalStorage as useLS } from '@/hooks/useLocalStorage';
-import type { ThemePluginManifest } from '@/lib/theme-plugin';
-import { THEME_PLUGINS_KEY, THEME_SELECTED_ID_KEY, applyThemeTokensToElement, getTokensForScope } from '@/lib/theme-plugin';
 
 export default function BookPage() {
   const router = useRouter();
@@ -26,10 +23,6 @@ export default function BookPage() {
   const isMobile = useIsMobile();
   const sidebarRef = useRef<HTMLDivElement | null>(null);
   const mainRef = useRef<HTMLDivElement | null>(null);
-  const [installedThemes] = useLS<ThemePluginManifest[]>(THEME_PLUGINS_KEY, []);
-  const [selectedThemeId] = useLS<string | null>(THEME_SELECTED_ID_KEY, null);
-  const sidebarScopeObserverRef = useRef<MutationObserver | null>(null);
-  const sidebarScopeCleanupsRef = useRef<Array<() => void>>([]);
 
   const [books, setBooks] = useLocalStorage<Book[]>('books', []);
   // 关键修复：角色卡/世界书按书ID分桶存储，避免跨书互相污染
@@ -120,40 +113,6 @@ export default function BookPage() {
     }
   }, [currentBook]);
 
-  // Apply scoped themes: topbar / sidebar / editor handled separately
-  useEffect(() => {
-    const manifest = installedThemes.find(t => t.id === selectedThemeId) || null;
-    // topbar via query (Header has data-theme-scope="topbar")
-    const headerEl = typeof window !== 'undefined' ? document.querySelector('header[data-theme-scope="topbar"]') as HTMLElement | null : null;
-    const cleanupTop = headerEl ? applyThemeTokensToElement(headerEl, getTokensForScope(manifest, 'topbar')) : () => {};
-    const cleanupSidebar = sidebarRef.current ? applyThemeTokensToElement(sidebarRef.current, getTokensForScope(manifest, 'sidebar')) : () => {};
-    const cleanupMain = mainRef.current ? applyThemeTokensToElement(mainRef.current, getTokensForScope(manifest, 'root')) : () => {};
-
-    // Apply sidebar scope to all dynamic containers (e.g., Sheet portals)
-    const applySidebarScopeToAll = () => {
-      sidebarScopeCleanupsRef.current.forEach(fn => fn());
-      sidebarScopeCleanupsRef.current = [];
-      const nodes = document.querySelectorAll('[data-theme-scope="sidebar"]');
-      nodes.forEach(node => {
-        const fn = applyThemeTokensToElement(node as HTMLElement, getTokensForScope(manifest, 'sidebar'));
-        sidebarScopeCleanupsRef.current.push(fn);
-      });
-    };
-    applySidebarScopeToAll();
-    if (sidebarScopeObserverRef.current) sidebarScopeObserverRef.current.disconnect();
-    sidebarScopeObserverRef.current = new MutationObserver(() => {
-      applySidebarScopeToAll();
-    });
-    sidebarScopeObserverRef.current.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-theme-scope'] });
-
-    return () => { 
-      cleanupTop(); cleanupSidebar(); cleanupMain();
-      sidebarScopeCleanupsRef.current.forEach(fn => fn());
-      sidebarScopeCleanupsRef.current = [];
-      if (sidebarScopeObserverRef.current) sidebarScopeObserverRef.current.disconnect();
-    };
-  }, [installedThemes, selectedThemeId]);
-  
   useEffect(() => {
     if (currentBook) {
       // If there is no active chapter OR the active chapter is not in the current book's chapter list
@@ -242,7 +201,7 @@ export default function BookPage() {
                       <Menu className="h-5 w-5" />
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-[280px] p-0 bg-card text-card-foreground" data-theme-scope="sidebar" style={{ background: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', borderColor: 'hsl(var(--border))' }}>
+                  <SheetContent side="left" className="w-[280px] p-0 bg-card text-card-foreground">
                     <SheetHeader className="px-4 py-3 border-b">
                       <SheetTitle className='font-headline'>章节列表</SheetTitle>
                     </SheetHeader>
@@ -269,7 +228,7 @@ export default function BookPage() {
                 {!isMobile && "世界设定"}
               </Button>
             </SheetTrigger>
-            <SheetContent className="w-[90vw] sm:w-[400px] md:w-[540px] flex flex-col bg-card text-card-foreground" side={isMobile ? "bottom" : "right"} data-theme-scope="sidebar" style={{ background: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', borderColor: 'hsl(var(--border))' }}>
+            <SheetContent className="w-[90vw] sm:w-[400px] md:w-[540px] flex flex-col bg-card text-card-foreground" side={isMobile ? "bottom" : "right"}>
               <SheetHeader>
                 <SheetTitle className='font-headline'>世界书</SheetTitle>
               </SheetHeader>
@@ -283,7 +242,7 @@ export default function BookPage() {
                 {!isMobile && "角色卡"}
               </Button>
             </SheetTrigger>
-            <SheetContent className="w-[90vw] sm:w-[400px] md:w-[540px] flex flex-col bg-card text-card-foreground" side={isMobile ? "bottom" : "right"} data-theme-scope="sidebar" style={{ background: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', borderColor: 'hsl(var(--border))' }}>
+            <SheetContent className="w-[90vw] sm:w-[400px] md:w-[540px] flex flex-col bg-card text-card-foreground" side={isMobile ? "bottom" : "right"}>
               <SheetHeader>
                 <SheetTitle className='font-headline'>角色卡片</SheetTitle>
               </SheetHeader>
@@ -298,7 +257,7 @@ export default function BookPage() {
       </Header>
       <main ref={mainRef as any} className="flex-grow flex overflow-hidden">
         {!isMobile && (
-          <div ref={sidebarRef as any} className="w-1/4 lg:w-1/5 border-r overflow-y-auto p-2" data-theme-scope="sidebar" style={{ background: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', borderColor: 'hsl(var(--border))' }}>
+          <div ref={sidebarRef as any} className="w-1/4 lg:w-1/5 border-r overflow-y-auto p-2">
             <ChapterManager 
               book={currentBook}
               updateBook={updateBook}

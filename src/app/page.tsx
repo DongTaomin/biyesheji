@@ -83,11 +83,6 @@ export default function Home() {
 
         {/* 中间主内容区 */}
         <main className="flex-1 p-4 md:p-8 lg:p-10 overflow-hidden">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold font-headline flex items-center gap-2">
-              我的书架
-            </h1>
-          </div>
           <BookList />
         </main>
       </div>

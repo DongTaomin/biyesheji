@@ -33,7 +33,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { AIProviderSettings } from '@/components/AIProviderSettings';
-import ThemePluginManager from '@/components/ThemePluginManager';
 
 async function fetchSources(): Promise<BookSource[]> {
     try {
@@ -505,7 +504,7 @@ function SettingsPageInner() {
           </div>
           
           <Tabs defaultValue="book-sources" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="book-sources" className="flex items-center gap-2">
                 <Book className="w-4 h-4" />
                 书源管理
@@ -513,10 +512,6 @@ function SettingsPageInner() {
               <TabsTrigger value="ai-providers" className="flex items-center gap-2">
                 <Bot className="w-4 h-4" />
                 AI配置
-              </TabsTrigger>
-              <TabsTrigger value="editor-themes" className="flex items-center gap-2">
-                <Palette className="w-4 h-4" />
-                编辑器主题
               </TabsTrigger>
             </TabsList>
             
@@ -688,18 +683,6 @@ function SettingsPageInner() {
                       建议定期导出配置文件作为备份。
                     </p>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="editor-themes" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>主题与排版</CardTitle>
-                  <CardDescription>导入并启用社区主题，定制编辑器颜色与字体。</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ThemePluginManager />
                 </CardContent>
               </Card>
             </TabsContent>
