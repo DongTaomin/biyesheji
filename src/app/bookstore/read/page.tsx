@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ForesightManager } from 'js.foresight';
+import { ReadingAIAssistant } from '@/components/ReadingAIAssistant';
 
 function ChapterReader() {
     const router = useRouter();
@@ -307,6 +308,12 @@ function ChapterReader() {
                     </Tooltip>
                 </TooltipProvider>
             </div>
+
+            {/* AI Reading Assistant */}
+            <ReadingAIAssistant 
+                chapterTitle={chapter.title}
+                chapterContent={chapter.content}
+            />
         </div>
     );
 }
