@@ -6,9 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThumbsUp, Plus, Loader2, Copy, Send, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { getVisiblePrompts, addPrompt, likePrompt } from '@/lib/actions/community';
-import { getRemoteVisiblePrompts, addRemotePrompt, likeRemotePrompt, deleteRemotePrompt, updateRemotePrompt } from '@/lib/community-remote';
 import { deletePrompt, updatePrompt } from '@/lib/actions/community';
-import { Server } from 'lucide-react';
 import type { CommunityPrompt } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -78,7 +76,6 @@ function PublishDialog({ onPublished }: { onPublished: () => void }) {
     const [prompt, setPrompt] = useState('');
     // 已不需要密码
     const [visible, setVisible] = useState(true);
-  const [uploadToServer, setUploadToServer] = useState(false); // 默认本地，勾选后上传服务器
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
@@ -86,22 +83,12 @@ function PublishDialog({ onPublished }: { onPublished: () => void }) {
         setIsLoading(true);
     let success = false;
     let message: string | undefined = '';
-    if (uploadToServer) {
-      // 先尝试远程，失败回落本地
-      const ok = await addRemotePrompt({ name, prompt, visible });
-      success = ok.success;
-      message = ok.message;
-      if (!success) {
-        const local = await addPrompt({ name, prompt, visible });
-        success = local.success;
-        message = local.message;
-      }
-    } else {
+    
       // 仅本地
       const local = await addPrompt({ name, prompt, visible });
       success = local.success;
       message = local.message;
-    }
+    
         setIsLoading(false);
 
         if (success) {
@@ -145,10 +132,6 @@ function PublishDialog({ onPublished }: { onPublished: () => void }) {
                         <Switch id="visible-switch" checked={visible} onCheckedChange={setVisible} />
                         <Label htmlFor="visible-switch" className="flex items-center gap-1 cursor-pointer">{visible ? <><Eye className="h-4 w-4"/>公开分享</> : <><EyeOff className="h-4 w-4"/>仅自己可见</>}</Label>
                     </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="upload-server" checked={uploadToServer} onCheckedChange={setUploadToServer} />
-                    <Label htmlFor="upload-server" className="cursor-pointer">上传到服务器（默认只保存到本地社区）</Label>
-                  </div>
                 </div>
                 <DialogFooter>
                     <DialogClose asChild>
@@ -177,16 +160,10 @@ export default function CommunityPage() {
     const fetchPrompts = async () => {
         setIsLoading(true);
         let data: CommunityPrompt[] = [];
-        try {
-            // 优先从远程服务获取
-            const remote = await getRemoteVisiblePrompts();
-            if (Array.isArray(remote) && remote.length >= 0) data = remote;
-        } catch (e) {
-            // 忽略远程错误，回退到本地
-        }
-        if (data.length === 0) {
-            data = await getVisiblePrompts();
-        }
+        
+        // 仅从本地获取
+        data = await getVisiblePrompts();
+        
         setPrompts(data);
         setIsLoading(false);
     };
@@ -216,10 +193,9 @@ export default function CommunityPage() {
         if (!currentPrompt) return;
 
         setOptimisticPrompts({ id, newLikes: currentPrompt.likes + 1 });
-        let result = await likeRemotePrompt(id);
-        if (!result.success) {
-            result = await likePrompt(id);
-        }
+        
+        const result = await likePrompt(id);
+        
         if (result.success) {
             setPrompts(prompts.map(p => p.id === id ? {...p, likes: result.newLikes!} : p));
         }
@@ -233,11 +209,6 @@ export default function CommunityPage() {
                     <div className="flex items-center gap-2">
                         <h1 className="text-3xl font-bold font-headline">创作社区</h1>
                         <p className="text-muted-foreground mt-1">发现和分享驱动故事的 AI 角色设定</p>
-                        <Button asChild variant="outline" size="sm" className="gap-2">
-                          <a href={`${process.env.NEXT_PUBLIC_COMMUNITY_SERVER || 'http://47.95.220.140:8080'}/upload`} target="_blank" rel="noopener noreferrer">
-                            <Server className="w-4 h-4" /> 服务器
-                          </a>
-                        </Button>
                     </div>
                     <PublishDialog onPublished={fetchPrompts} />
                 </div>

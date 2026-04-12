@@ -8,6 +8,7 @@ import { UnifiedAIClient } from '../unified-client';
 import { AIConfigManager } from '../config-manager';
 import { GeminiProvider } from '../providers/gemini';
 import { OpenAICompatibleProvider } from '../providers/openai-compatible';
+import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import {
   AIProvider,
   AIModel,
@@ -32,7 +33,7 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 // Mock fetch
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 // Mock provider for testing
 class MockProvider implements AIProvider {

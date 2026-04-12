@@ -13,12 +13,6 @@ export default function Home() {
       href: '/bookstore',
     },
     {
-      title: '网文天赋测试',
-      description: '测测你的创作潜力',
-      icon: <Sparkles className="w-5 h-5" />,
-      href: '/talent-test',
-    },
-    {
       title: '网文审稿',
       description: 'AI 模拟资深编辑反馈',
       icon: <FileScan className="w-5 h-5" />,
