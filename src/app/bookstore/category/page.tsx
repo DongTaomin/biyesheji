@@ -17,9 +17,9 @@ import { DeconstructOutline } from '@/components/DeconstructOutline';
 function CategoryBooks() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const name = searchParams.get('name') || '';
-    const url = searchParams.get('url') || '';
-    const sourceId = searchParams.get('sourceId') || '';
+    const name = searchParams?.get('name') || '';
+    const url = searchParams?.get('url') || '';
+    const sourceId = searchParams?.get('sourceId') || '';
     
     const [books, setBooks] = useState<BookstoreBook[]>([]);
     const [isLoading, setIsLoading] = useState(true);

@@ -49,7 +49,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
  */
 export function isClipboardSupported(): boolean {
     // 检查现代 Clipboard API
-    if (navigator.clipboard && navigator.clipboard.writeText) {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         return true;
     }
     

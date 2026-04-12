@@ -2,6 +2,7 @@
  * 高级设置功能测试
  */
 
+import { describe, test, expect, beforeEach } from 'vitest';
 import { AIConfigManager } from '../config-manager';
 import { GeminiProvider } from '../providers/gemini';
 import { OpenAICompatibleProvider } from '../providers/openai-compatible';

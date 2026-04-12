@@ -85,7 +85,7 @@ export async function idbGetAllKeys(): Promise<string[]> {
         req.onsuccess = () => resolve(req.result as string[]);
         req.onerror = () => reject(req.error || new Error('getAllKeys error'));
       } else {
-        const req = store.openCursor();
+        const req = (store as any).openCursor();
         req.onsuccess = () => {
           const cursor = req.result as IDBCursorWithValue | null;
           if (cursor) {

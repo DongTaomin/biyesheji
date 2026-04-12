@@ -693,38 +693,40 @@ describe('Integration Tests', () => {
     client.destroy();
   });
 
-  test('should handle config changes dynamically', (done) => {
-    // Clear any existing config
-    mockLocalStorage.clear();
+  test('should handle config changes dynamically', async () => {
+    return new Promise<void>((resolve) => {
+      // Clear any existing config
+      mockLocalStorage.clear();
 
-    // Create client with auto-load
-    const client = new UnifiedAIClient({ autoLoadConfig: true, debug: false });
+      // Create client with auto-load
+      const client = new UnifiedAIClient({ autoLoadConfig: true, debug: false });
 
-    // Listen for config changes
-    const unsubscribe = AIConfigManager.onConfigChange((event) => {
-      if (event.detail.type === 'providers') {
-        // Verify provider was added to client
-        setTimeout(() => {
-          const provider = client.getProvider('dynamic-test');
-          expect(provider).toBeDefined();
-          
-          // Clean up
-          client.destroy();
-          unsubscribe();
-          done();
-        }, 100);
-      }
-    });
+      // Listen for config changes
+      const unsubscribe = AIConfigManager.onConfigChange((event) => {
+        if (event.detail.type === 'providers') {
+          // Verify provider was added to client
+          setTimeout(() => {
+            const provider = client.getProvider('dynamic-test');
+            expect(provider).toBeDefined();
+            
+            // Clean up
+            client.destroy();
+            unsubscribe();
+            resolve();
+          }, 100);
+        }
+      });
 
-    // Add provider via config manager (should trigger reload)
-    AIConfigManager.addProvider({
-      id: 'dynamic-test',
-      name: 'dynamic-test',
-      displayName: 'Dynamic Test',
-      type: 'custom',
-      apiUrl: 'https://api.test.com',
-      apiKey: 'test-key',
-      enabled: true,
+      // Add provider via config manager (should trigger reload)
+      AIConfigManager.addProvider({
+        id: 'dynamic-test',
+        name: 'dynamic-test',
+        displayName: 'Dynamic Test',
+        type: 'custom',
+        apiUrl: 'https://api.test.com',
+        apiKey: 'test-key',
+        enabled: true,
+      });
     });
   });
 });
