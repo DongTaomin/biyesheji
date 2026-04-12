@@ -1,6 +1,6 @@
 'use client';
 
-import type { AuthApiResponse, AuthResult, PublicUser } from '@/lib/auth-types';
+import type { AuthApiResponse, AuthResult, ProfileUpdatePayload, PublicUser } from '@/lib/auth-types';
 
 async function parseAuthResponse(response: Response): Promise<AuthResult> {
   const data = (await response.json().catch(() => null)) as AuthApiResponse | null;
@@ -54,4 +54,15 @@ export async function apiGetMe(): Promise<PublicUser | null> {
 
   const result = await parseAuthResponse(response);
   return result.user ?? null;
+}
+
+export async function apiUpdateProfile(payload: ProfileUpdatePayload): Promise<AuthResult> {
+  const response = await fetch('/api/profile', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify(payload),
+  });
+
+  return parseAuthResponse(response);
 }

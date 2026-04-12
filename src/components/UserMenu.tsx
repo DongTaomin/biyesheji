@@ -1,6 +1,7 @@
 'use client';
 
 import { LogOut, UserCircle2 } from 'lucide-react';
+import Link from 'next/link';
 
 import { useAuth } from '@/hooks/useAuth';
 import type { PublicUser } from '@/lib/auth-types';
@@ -37,9 +38,11 @@ export function UserMenu({ user }: { user: PublicUser }) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled>
-          <UserCircle2 className='mr-2 h-4 w-4' />
-          个人主页（待开发）
+        <DropdownMenuItem asChild>
+          <Link href='/profile'>
+            <UserCircle2 className='mr-2 h-4 w-4' />
+            个人中心
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => void logout()}>
           <LogOut className='mr-2 h-4 w-4' />

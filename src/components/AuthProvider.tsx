@@ -3,12 +3,17 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { AuthContext } from '@/hooks/useAuth';
-import { apiGetMe, apiLogin, apiLogout, apiRegister } from '@/lib/auth-client';
-import type { PublicUser } from '@/lib/auth-types';
+import { apiGetMe, apiLogin, apiLogout, apiRegister, apiUpdateProfile } from '@/lib/auth-client';
+import type { ProfileUpdatePayload, PublicUser } from '@/lib/auth-types';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<PublicUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const refreshUser = async () => {
+    const currentUser = await apiGetMe();
+    setUser(currentUser);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -51,6 +56,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         return result;
       },
+      updateProfile: async (payload: ProfileUpdatePayload) => {
+        const result = await apiUpdateProfile(payload);
+        if (result.user) {
+          setUser(result.user);
+        }
+        return result;
+      },
+      refreshUser,
       logout: async () => {
         await apiLogout();
         setUser(null);
