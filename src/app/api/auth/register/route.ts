@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
-import { prisma, signJWT, setAuthCookie } from '@/lib/auth-server';
+import { prisma, signJWT, setAuthCookie, toPublicUser } from '@/lib/auth-server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { PublicUser } from '@/lib/auth-types';
 
 const registerSchema = z.object({
   email: z.string().email('无效的邮箱格式'),
-  username: z.string().min(3, '用户名至少3个字符').max(20, '用户名最多20个字符'),
+  username: z
+    .string()
+    .trim()
+    .min(3, '用户名至少3个字符')
+    .max(20, '用户名最多20个字符')
+    .regex(/^[\u4e00-\u9fa5\w]+$/, '用户名仅支持中文、字母、数字和下划线'),
   password: z.string().min(8, '密码至少8个字符'),
 });
 
@@ -37,13 +41,9 @@ export async function POST(request: Request) {
       data: { email, username, password: hashedPassword },
     });
 
-    const publicUser: PublicUser = {
-      id: user.id, email: user.email, username: user.username,
-      avatar: user.avatar, bio: user.bio, role: user.role,
-      createdAt: user.createdAt.toISOString(),
-    };
+    const publicUser = toPublicUser(user);
 
-    const token = await signJWT({ sub: user.id, email: user.email, username: user.username, role: user.role });
+    const token = await signJWT({ sub: user.id, email: user.email, username: user.username, role: publicUser.role });
     const response = NextResponse.json({ success: true, data: { user: publicUser } }, { status: 201 });
     
     setAuthCookie(response, token);

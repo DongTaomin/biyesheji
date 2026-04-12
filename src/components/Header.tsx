@@ -1,13 +1,18 @@
 'use client';
 
-import Link from 'next/link';
-import Logo from './Logo';
-import { Book, Globe, Users, Library, Settings, Home } from 'lucide-react';
+import { AuthDialog } from '@/components/AuthDialog';
 import { Button } from '@/components/ui/button';
-import { AIProviderSettings } from './AIProviderSettings';
-import { ThemeToggle } from './ThemeToggle';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+
+import { AIProviderSettings } from './AIProviderSettings';
+import Logo from './Logo';
+import { ThemeToggle } from './ThemeToggle';
+import { UserMenu } from './UserMenu';
 
 type HeaderProps = {
   children?: React.ReactNode;
@@ -16,7 +21,9 @@ type HeaderProps = {
 export default function Header({ children }: HeaderProps) {
   const isMobile = useIsMobile();
   const pathname = usePathname();
-  
+  const { user, isLoading } = useAuth();
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+
   // 判断是否在写作页面（books/[bookId]路径）
   const isWritingPage = pathname?.startsWith('/books/');
 
@@ -32,9 +39,19 @@ export default function Header({ children }: HeaderProps) {
           <ThemeToggle />
           {/* 写作页面已经有AI配置，不再重复显示 */}
           {!isWritingPage && <AIProviderSettings variant="ghost" showStatus={true} />}
+          {isLoading ? (
+            <Skeleton className="h-8 w-8 rounded-full" />
+          ) : user ? (
+            <UserMenu user={user} />
+          ) : (
+            <Button size="sm" variant="secondary" onClick={() => setAuthDialogOpen(true)}>
+              登录
+            </Button>
+          )}
           {children}
         </div>
       </div>
+      <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />
     </header>
   );
 }

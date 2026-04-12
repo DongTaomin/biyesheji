@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma, signJWT, setAuthCookie } from '@/lib/auth-server';
+import { prisma, signJWT, setAuthCookie, toPublicUser } from '@/lib/auth-server';
 import bcrypt from 'bcryptjs';
-import { PublicUser } from '@/lib/auth-types';
 
 export async function POST(request: Request) {
   try {
@@ -20,13 +19,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '邮箱或密码错误' }, { status: 401 });
     }
 
-    const publicUser: PublicUser = {
-      id: user.id, email: user.email, username: user.username,
-      avatar: user.avatar, bio: user.bio, role: user.role,
-      createdAt: user.createdAt.toISOString(),
-    };
+    const publicUser = toPublicUser(user);
 
-    const token = await signJWT({ sub: user.id, email: user.email, username: user.username, role: user.role });
+    const token = await signJWT({ sub: user.id, email: user.email, username: user.username, role: publicUser.role });
     const response = NextResponse.json({ success: true, data: { user: publicUser } });
     
     setAuthCookie(response, token);
