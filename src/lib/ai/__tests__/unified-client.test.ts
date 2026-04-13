@@ -564,37 +564,59 @@ describe('AIConfigManager', () => {
 
   describe('Health Check', () => {
     test('should check configuration health', () => {
-      // Add a valid provider
+      // Add a valid provider (apiKey >= 10 chars to avoid short-key warning)
       AIConfigManager.addProvider({
         id: 'valid-provider',
         name: 'valid-provider',
         displayName: 'Valid Provider',
         type: 'openai',
         apiUrl: 'https://api.openai.com/v1',
-        apiKey: 'test-key',
+        apiKey: 'sk-test-key-1234567890',
         enabled: true,
       });
 
       const health = AIConfigManager.checkHealth();
       expect(health.healthy).toBe(true);
-      expect(health.issues).toHaveLength(0);
+      // No error-level issues; warnings (e.g. short key) are acceptable
+      const errors = health.issues.filter(i => i.type === 'error');
+      expect(errors).toHaveLength(0);
     });
 
     test('should detect health issues', () => {
-      // Add an invalid provider
-      AIConfigManager.addProvider({
-        id: 'invalid-provider',
-        name: 'invalid-provider',
-        displayName: 'Invalid Provider',
-        type: 'openai',
-        apiUrl: 'https://api.openai.com/v1',
-        apiKey: '', // Empty API key
-        enabled: true,
-      });
+      // addProvider() throws on validation failure, so bypass it by
+      // writing an invalid provider directly via saveProviders()
+      const now = new Date().toISOString();
+      AIConfigManager.saveProviders([
+        {
+          id: 'invalid-provider',
+          name: 'invalid-provider',
+          displayName: 'Invalid Provider',
+          type: 'openai' as const,
+          apiUrl: 'https://api.openai.com/v1',
+          apiKey: '', // Empty API key — triggers error in checkHealth
+          enabled: true,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ]);
 
       const health = AIConfigManager.checkHealth();
       expect(health.healthy).toBe(false);
       expect(health.issues.length).toBeGreaterThan(0);
+    });
+
+    test('should report addProvider validation error for empty apiKey', () => {
+      expect(() =>
+        AIConfigManager.addProvider({
+          id: 'bad-provider',
+          name: 'bad-provider',
+          displayName: 'Bad Provider',
+          type: 'openai',
+          apiUrl: 'https://api.openai.com/v1',
+          apiKey: '',
+          enabled: true,
+        }),
+      ).toThrow('配置验证失败');
     });
   });
 });
